@@ -289,6 +289,32 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn(".page_content", mobile)
         self.assertIn("padding-bottom", mobile)
 
+    def test_desktop_sidebar_lists_products_before_cart(self):
+        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
+        with open(js_path, encoding="utf-8") as js_file:
+            js = js_file.read()
+
+        helper = js.split("function addProductsLink() {", 1)[1].split("\n  }", 1)[0]
+        # addSidebarLink uses insertBefore(firstChild), so calls render in reverse.
+        # Calling Cart first produces All Products → Cart in the desktop sidebar.
+        self.assertLess(
+            helper.index('addSidebarLink("/cart"'),
+            helper.index('addSidebarLink("/all-products"'),
+            "Desktop sidebar must render All Products before Cart",
+        )
+
+    def test_mobile_cards_use_the_quote_list_horizontal_padding(self):
+        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        with open(css_path, encoding="utf-8") as css_file:
+            css = css_file.read()
+
+        quote = css.split(".website-list.frc-quote-list .web-list-item > a {", 1)[1].split("}", 1)[0]
+        self.assertIn("padding: 16px 18px", quote)
+
+        mobile = css.split("@media (max-width: 991px) {")[-1]
+        product_row = mobile.split("#products-list-area .list-row {", 1)[1].split("}", 1)[0]
+        self.assertIn("padding: 16px 18px !important", product_row)
+
     def test_list_view_buttons_stay_inside_compact_card(self):
         css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
@@ -392,6 +418,196 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("body[data-path=\"all-products\"] > .page-content-wrapper > main.container {", css)
         self.assertIn("function showCartIcon()", js)
         self.assertIn('icon.classList.remove("hidden")', js)
+
+    def test_mobile_shell_keeps_one_page_gutter(self):
+        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        with open(css_path, encoding="utf-8") as css_file:
+            css = css_file.read()
+
+        # Cart / All Products drop the outer gutter; the inner main.container keeps 24px.
+        rule = css.split('body[data-path="cart"] > .container,', 1)[1].split("}", 1)[0]
+        self.assertIn("padding-left: 0 !important", rule)
+        self.assertIn("padding-right: 0 !important", rule)
+
+        # Quotation / invoice keep the native Frappe gutter: the override must stay scoped.
+        self.assertNotIn(".container:has(.sidebar-column) {\n\t\tpadding-left: 0", css)
+
+    def test_mobile_main_column_fills_the_row(self):
+        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        with open(css_path, encoding="utf-8") as css_file:
+            css = css_file.read()
+
+        # Cart / All Products opt in to the full-width shell.
+        rule = css.split(
+            'body[data-path="cart"] .row:has(.sidebar-column) > .main-column,',
+            1,
+        )[1].split("}", 1)[0]
+        self.assertIn("max-width: 100% !important", rule)
+
+        # Quotation / invoice keep their original column rule (no max-width override).
+        self.assertIn(
+            ".row:has(.sidebar-column) > .main-column {\n"
+            "\t\twidth: 100%;\n"
+            "\t\tpadding-bottom: 72px !important;\n"
+            "\t}",
+            css,
+        )
+
+        inner = css.split(
+            'body[data-path="cart"] .row:has(.sidebar-column) > .main-column .page-content-wrapper > main.container,',
+            1,
+        )[1].split("}", 1)[0]
+        self.assertIn("max-width: none !important", inner)
+        self.assertIn("margin-left: 0 !important", inner)
+
+    def test_mobile_quote_pages_keep_their_native_gutter(self):
+        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        with open(css_path, encoding="utf-8") as css_file:
+            css = css_file.read()
+
+        # The single-gutter / full-width shell is cart + all-products only.
+        self.assertNotIn(".container:has(.sidebar-column) {\n\t\tpadding-left: 0", css)
+        self.assertNotIn(
+            ".row:has(.sidebar-column) > .main-column {\n\t\twidth: 100%;\n\t\tmax-width: 100%",
+            css,
+        )
+
+    def test_mobile_quotation_detail_uses_the_wide_shell(self):
+        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        with open(css_path, encoding="utf-8") as css_file:
+            css = css_file.read()
+
+        self.assertIn('body[data-path="order"] > .container', css)
+        self.assertIn(
+            'body[data-path="order"] .row:has(.sidebar-column) > .main-column',
+            css,
+        )
+        self.assertIn(
+            'body[data-path="order"] .row:has(.sidebar-column) > .main-column '
+            ".page-content-wrapper > main.container",
+            css,
+        )
+        self.assertIn(
+            ".frc-detail-form.frc-order-detail {\n"
+            "\t\tpadding: 0;\n"
+            "\t}",
+            css,
+        )
+        self.assertIn(
+            ".frc-order-detail .frc-detail-section {\n"
+            "\t\tpadding: 16px 18px;\n"
+            "\t}",
+            css,
+        )
+
+    def test_list_filters_use_compact_date_panel(self):
+        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        with open(css_path, encoding="utf-8") as css_file:
+            css = css_file.read()
+
+        self.assertIn(".website-list-filters .row > .col-6", css)
+        self.assertIn(".website-list-filters .form-search", css)
+        self.assertIn(".frc-date-summary", css)
+        self.assertIn(".frc-date-panel", css)
+        self.assertIn(".frc-date-panel-fields", css)
+        self.assertIn(".frc-date-filter {\n\tposition: relative;", css)
+        self.assertIn(".frc-date-panel {\n\tposition: absolute;", css)
+
+        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
+        with open(js_path, encoding="utf-8") as js_file:
+            js = js_file.read()
+
+        self.assertIn("function initListFilters()", js)
+        self.assertIn("function formatDateFilterRange(", js)
+        self.assertIn('Quotation: "transaction_date"', js)
+        self.assertIn('"Sales Invoice": "posting_date"', js)
+        self.assertIn("initListFilters();", js)
+        self.assertIn('"between"', js)
+        self.assertIn("frc-date-summary", js)
+        self.assertIn("frc-date-panel", js)
+
+    def test_mobile_bottom_nav_reserves_page_space(self):
+        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        with open(css_path, encoding="utf-8") as css_file:
+            css = css_file.read()
+
+        nav_rule = css.split(".frc-bottom-nav ul {", 1)[1].split("}", 1)[0]
+        self.assertIn("margin: 0;", nav_rule)
+        self.assertIn(
+            "body:has(.sidebar-column)::after {\n"
+            '\t\tcontent: "";\n'
+            "\t\tdisplay: block;\n"
+            "\t\tflex: 0 0 auto;\n"
+            "\t\theight: calc(64px + env(safe-area-inset-bottom, 0px));\n"
+            "\t}",
+            css,
+        )
+
+    def test_webshop_caches_product_api_responses(self):
+        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
+        with open(js_path, encoding="utf-8") as js_file:
+            js = js_file.read()
+
+        self.assertIn('"webshop.webshop.api.get_product_filter_data": CACHE_TTL', js)
+        self.assertIn("[PRICE_METHOD]: CACHE_TTL", js)
+        self.assertIn("sessionStorage.setItem(key", js)
+        self.assertIn("function clearApiCache()", js)
+        self.assertIn(
+            ".btn-add-to-cart-list, .btn-add-to-cart",
+            js,
+        )
+        self.assertIn("#page-cart .cart-container", js)
+
+    def test_mobile_list_area_aligns_with_page_content(self):
+        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        with open(css_path, encoding="utf-8") as css_file:
+            css = css_file.read()
+
+        mobile = css.split("@media (max-width: 991px) {")[-1]
+        rule = mobile.split("#products-list-area {", 1)[1].split("}", 1)[0]
+        self.assertIn("margin-left: 0 !important", rule)
+        self.assertIn("margin-right: 0 !important", rule)
+
+    def test_mobile_cart_qty_controls_stay_on_one_row(self):
+        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        with open(css_path, encoding="utf-8") as css_file:
+            css = css_file.read()
+
+        # 30px minus + 46px input + 30px plus = 106px. A 92px spinner wraps
+        # the plus button onto its own row.
+        self.assertNotIn("tbody .number-spinner {\n\t\twidth: 92px !important;", css)
+        self.assertNotIn("tbody .number-spinner .cart-qty {\n\t\twidth: 36px !important;", css)
+        self.assertIn("tbody.cart-items .number-spinner {\n\twidth: 106px;\n\tmin-width: 106px;", css)
+
+    def test_mobile_cart_hides_the_decorative_item_checkbox(self):
+        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        with open(css_path, encoding="utf-8") as css_file:
+            css = css_file.read()
+
+        # The disabled checkbox only repeats "all items are included"; it adds noise.
+        self.assertIn(
+            "#page-cart .cart-container.frc-shop .frc-item-check {\n\t\tdisplay: none !important;",
+            css,
+        )
+
+    def test_mobile_cart_line_total_sits_on_the_qty_row(self):
+        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        with open(css_path, encoding="utf-8") as css_file:
+            css = css_file.read()
+
+        rule = css.rsplit(
+            "#page-cart .cart-container.frc-shop .cart-table tbody.cart-items td:nth-child(2) {",
+            1,
+        )[1].split("}", 1)[0]
+        self.assertIn("flex-direction: row", rule)
+        self.assertIn("justify-content: space-between", rule)
+        self.assertIn("width: 100% !important", rule)
+
+        total = css.rsplit(
+            "#page-cart .cart-container.frc-shop .cart-table tbody.cart-items .frc-line-total {",
+            1,
+        )[1].split("}", 1)[0]
+        self.assertIn("margin-left: auto", total)
 
     def test_navbar_cart_moves_right_and_hamburger_stays_above_drawer(self):
         css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")

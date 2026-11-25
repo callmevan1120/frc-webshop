@@ -325,6 +325,7 @@ body.frc-sidebar-collapsed .frc-nav-toggle {
 	.frc-bottom-nav ul {
 		display: flex;
 		justify-content: space-around;
+		margin: 0;
 	}
 
 	.frc-bottom-nav .sidebar-item a {
@@ -400,9 +401,48 @@ body.frc-sidebar-collapsed .frc-nav-toggle {
 		display: block !important;
 	}
 
+	/* Reserve the fixed bottom nav's height below the footer. */
+	body:has(.sidebar-column)::after {
+		content: "";
+		display: block;
+		flex: 0 0 auto;
+		height: calc(64px + env(safe-area-inset-bottom, 0px));
+	}
+
+	/* Cart / All Products: one gutter only (inner main.container already pads 24px). */
+	body[data-path="cart"] > .container,
+	body[data-path="all-products"] > .container,
+	body[data-path="order"] > .container {
+		padding-left: 0 !important;
+		padding-right: 0 !important;
+	}
+
+	/* Disabled checkbox only repeats that every item is included; hide the noise. */
+	#page-cart .cart-container.frc-shop .frc-item-check {
+		display: none !important;
+	}
+
 	.row:has(.sidebar-column) > .main-column {
 		width: 100%;
 		padding-bottom: 72px !important;
+	}
+
+	/* Cart / All Products / Order detail fill the viewport; quotation & invoice lists keep Frappe's native cap. */
+	body[data-path="cart"] .row:has(.sidebar-column) > .main-column,
+	body[data-path="all-products"] .row:has(.sidebar-column) > .main-column,
+	body[data-path="order"] .row:has(.sidebar-column) > .main-column {
+		max-width: 100% !important;
+	}
+
+	body[data-path="cart"] .row:has(.sidebar-column) > .main-column .page-content-wrapper > main.container,
+	body[data-path="all-products"] .row:has(.sidebar-column) > .main-column .page-content-wrapper > main.container,
+	body[data-path="order"] .row:has(.sidebar-column) > .main-column .page-content-wrapper > main.container {
+		max-width: none !important;
+		width: 100%;
+		margin-left: 0 !important;
+		margin-right: 0 !important;
+		padding-left: 24px !important;
+		padding-right: 24px !important;
 	}
 
 	body.frc-sidebar-open::after {
@@ -627,11 +667,19 @@ body[data-path="order"] .page_content > div:first-child {
 	body[data-path="order"] .page_content > div:first-child {
 		grid-template-columns: minmax(0, 1fr);
 	}
+
+	.frc-detail-form.frc-order-detail {
+		padding: 0;
+	}
 }
 
 @media (max-width: 575px) {
 	.frc-detail-timestamps {
 		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.frc-order-detail .frc-detail-section {
+		padding: 16px 18px;
 	}
 }
 
@@ -714,6 +762,172 @@ body[data-path="order"] .page_content > div:first-child {
 	}
 }
 
+/* Portal list filters (Quotations / Invoices) ---------------------------- */
+@media (min-width: 768px) {
+	/* Frappe pads .website-list with --padding-lg; keep the toolbar on the same edge. */
+	.website-list-filters {
+		padding: 0 var(--padding-lg);
+	}
+}
+
+.website-list-filters .row > .col-6 {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: 8px;
+}
+
+.website-list-filters .form-search {
+	flex: 0 1 auto;
+}
+
+.frc-date-filter {
+	position: relative;
+	flex: 0 1 auto;
+	margin: 0;
+}
+
+.frc-date-summary {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	height: 28px;
+	padding: 0 10px;
+	border: 1px solid var(--border-color, #d1d8dd);
+	border-radius: 6px;
+	background: #fff;
+	color: var(--text-secondary, #4c5a67);
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1;
+	cursor: pointer;
+	list-style: none;
+}
+
+.frc-date-summary::-webkit-details-marker {
+	display: none;
+}
+
+.frc-date-summary::after {
+	content: "";
+	width: 0;
+	height: 0;
+	margin-left: 2px;
+	border-top: 4px solid var(--text-muted, #6c757d);
+	border-right: 3px solid transparent;
+	border-left: 3px solid transparent;
+	transition: transform 0.15s ease;
+}
+
+.frc-date-filter[open] .frc-date-summary::after {
+	transform: rotate(180deg);
+}
+
+.frc-date-filter.frc-has-date .frc-date-summary {
+	border-color: var(--text-color, #212529);
+	color: var(--text-color, #212529);
+}
+
+.frc-date-summary .icon {
+	width: 13px;
+	height: 13px;
+}
+
+.frc-date-summary-range {
+	color: var(--text-color, #212529);
+	font-weight: 600;
+}
+
+.frc-date-panel {
+	position: absolute;
+	top: calc(100% + 6px);
+	left: 0;
+	z-index: 30;
+	width: 340px;
+	max-width: calc(100vw - 48px);
+	padding: 12px;
+	border: 1px solid var(--border-color, #d1d8dd);
+	border-radius: 10px;
+	background: #fff;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.frc-date-panel-fields {
+	display: flex;
+	gap: 8px;
+}
+
+.frc-date-field {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	gap: 3px;
+	min-width: 0;
+	margin: 0;
+	color: var(--text-muted, #6c757d);
+	font-size: 11px;
+	font-weight: 500;
+}
+
+.frc-date-field .form-control {
+	width: 100%;
+	height: 28px;
+	padding: 2px 8px;
+	font-size: 12px;
+}
+
+.frc-date-actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 8px;
+	margin-top: 10px;
+}
+
+.frc-date-actions .btn {
+	height: 28px;
+	padding: 2px 12px;
+	font-size: 12px;
+}
+
+.frc-date-reset {
+	color: var(--text-muted, #6c757d);
+	text-decoration: none;
+}
+
+@media (max-width: 991px) {
+	.website-list-filters {
+		margin: 0 0 16px !important;
+	}
+
+	.website-list-filters .row > .col-6 {
+		flex: 0 0 100%;
+		max-width: 100%;
+	}
+
+	.website-list-filters .form-search,
+	.website-list-filters .form-search .input-group {
+		width: 100%;
+	}
+
+	.website-list-filters .form-search {
+		flex: 1 1 100%;
+	}
+
+	.frc-date-filter {
+		flex: 1 1 100%;
+	}
+
+	.frc-date-panel {
+		width: 100%;
+		max-width: none;
+	}
+
+	.frc-date-panel-fields {
+		flex-direction: column;
+	}
+}
+
 .item-cart .product-price {
 	line-height: 1.6;
 }
@@ -744,16 +958,6 @@ body[data-path="order"] .page_content > div:first-child {
 		width: 52px;
 		height: 52px;
 		max-height: 52px !important;
-	}
-
-	#page-cart .cart-container .cart-table tbody .number-spinner {
-		width: 92px !important;
-		min-width: 92px !important;
-	}
-
-	#page-cart .cart-container .cart-table tbody .number-spinner .cart-qty {
-		width: 36px !important;
-		max-width: 36px !important;
 	}
 
 	#page-cart .cart-container .cart-table tbody .frc-uom {
@@ -1153,8 +1357,15 @@ body[data-path="all-products"] .product-price .frc-unit {
 	}
 
 	#page-cart .cart-container.frc-shop .cart-table tbody.cart-items td:nth-child(2) {
-		align-items: flex-start;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		width: 100% !important;
 		text-align: left !important;
+	}
+
+	#page-cart .cart-container.frc-shop .cart-table tbody.cart-items .frc-line-total {
+		margin-left: auto;
 	}
 }
 
@@ -1288,6 +1499,14 @@ body[data-path="all-products"] #products-grid-area .btn-add-to-cart-list {
 		display: none !important;
 	}
 
+	/* Native list area adds 8px left / -15px right; align it with the page content. */
+	body[data-path="all-products"] #products-list-area {
+		margin-left: 0 !important;
+		margin-right: 0 !important;
+		padding-left: 0 !important;
+		padding-right: 0 !important;
+	}
+
 	/* Mobile list: Shopee-style compact row — thumbnail left, details right. */
 	body[data-path="all-products"] #products-list-area .list-row {
 		display: flex !important;
@@ -1296,7 +1515,7 @@ body[data-path="all-products"] #products-grid-area .btn-add-to-cart-list {
 		gap: 10px;
 		width: 100%;
 		margin: 0 0 10px;
-		padding: 10px !important;
+		padding: 16px 18px !important;
 		border: 1px solid var(--border-color, #e9ecef);
 		border-radius: 12px;
 	}

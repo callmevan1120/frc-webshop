@@ -6,6 +6,97 @@
   const PRICED = "data-frc-sales-priced";
   const PRICE_METHOD = "webshop.webshop.shopping_cart.product_info.get_product_info_for_website";
 
+  // Cache the two product APIs for a minute so returning to All Products paints instantly.
+  const CACHE_VERSION =
+    (document.currentScript && (document.currentScript.src.match(/[?&]v=(\d+)/) || [])[1]) || "0";
+  const CACHE_PREFIX = "frc-api:" + CACHE_VERSION + ":";
+  const CACHE_TTL = 60000;
+  const CACHE_METHODS = {
+    "webshop.webshop.api.get_product_filter_data": CACHE_TTL,
+    [PRICE_METHOD]: CACHE_TTL,
+  };
+
+  function apiCacheKey(method, args) {
+    const user = (window.frappe && frappe.session && frappe.session.user) || "Guest";
+    return CACHE_PREFIX + user + ":" + method + ":" + JSON.stringify(args || {});
+  }
+
+  function readApiCache(key) {
+    try {
+      const hit = JSON.parse(sessionStorage.getItem(key) || "null");
+      return hit && Date.now() - hit.at < hit.ttl ? hit.message : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function writeApiCache(key, message, ttl) {
+    try {
+      sessionStorage.setItem(key, JSON.stringify({ at: Date.now(), ttl: ttl, message: message }));
+    } catch (e) {
+      // Private mode or storage quota: caching is optional.
+    }
+  }
+
+  function clearApiCache() {
+    try {
+      Object.keys(sessionStorage).forEach(function (key) {
+        if (key.indexOf(CACHE_PREFIX) === 0) sessionStorage.removeItem(key);
+      });
+    } catch (e) {
+      // Nothing to clear.
+    }
+  }
+
+  function installApiCache() {
+    if (!window.frappe || !frappe.call || frappe.call.frcCached) return;
+    const original = frappe.call;
+    frappe.call = function (opts) {
+      if (!opts || typeof opts !== "object" || !CACHE_METHODS[opts.method]) {
+        return original.apply(this, arguments);
+      }
+      const key = apiCacheKey(opts.method, opts.args);
+      const cached = readApiCache(key);
+      if (cached !== null) {
+        const response = { message: cached };
+        if (typeof opts.callback === "function") {
+          setTimeout(function () {
+            opts.callback(response);
+          }, 0);
+        }
+        return Promise.resolve(response);
+      }
+      const callback = opts.callback;
+      return original.call(
+        this,
+        Object.assign({}, opts, {
+          callback: function (r) {
+            if (r && !r.exc && r.message !== undefined) {
+              writeApiCache(key, r.message, CACHE_METHODS[opts.method]);
+            }
+            if (typeof callback === "function") callback(r);
+          },
+        })
+      );
+    };
+    frappe.call.frcCached = true;
+  }
+
+  installApiCache();
+  document.addEventListener(
+    "click",
+    function (event) {
+      const target = event.target;
+      const mutatesCart =
+        target &&
+        target.closest &&
+        (target.closest(".btn-add-to-cart-list, .btn-add-to-cart") ||
+          target.closest("#page-cart .cart-container"));
+      if (mutatesCart) clearApiCache();
+    },
+    true
+  );
+
   function money(value) {
     const amount = Number(value);
     if (!(amount > 0)) return "—";
@@ -54,8 +145,8 @@
   function addProductsLink() {
     const title = document.querySelector(".web-sidebar .title");
     if (title && !title.textContent.trim()) title.textContent = "FRC";
-    addSidebarLink("/all-products", "All Products");
     addSidebarLink("/cart", "Cart");
+    addSidebarLink("/all-products", "All Products");
   }
 
   const BOTTOM_NAV_ROUTES = [
@@ -462,6 +553,10 @@
 
   const LIST_LIMIT = 20;
   const STAGE_LABELS = ["Quotation", "Sales Order", "Delivery", "Invoice"];
+  const LIST_DATE_FIELDS = {
+    Quotation: "transaction_date",
+    "Sales Invoice": "posting_date",
+  };
 
   function canReadPipeline() {
     return frappe.user && frappe.user.has_role("Administrator");
@@ -537,6 +632,189 @@
     link.querySelector(".frc-quote-status").textContent = status;
   }
 
+  function listDateField(path) {
+    if (path === "/quotations") return LIST_DATE_FIELDS.Quotation;
+    if (path === "/invoices") return LIST_DATE_FIELDS["Sales Invoice"];
+    return "";
+  }
+
+  function readListDateFilter(field) {
+    const raw = new URLSearchParams(window.location.search).get(field);
+    if (!raw) return { from: "", to: "" };
+    try {
+      const value = JSON.parse(raw);
+      if (!Array.isArray(value)) return { from: "", to: "" };
+      if (value[0] === "between" && Array.isArray(value[1])) {
+        return { from: value[1][0] || "", to: value[1][1] || "" };
+      }
+      if (value[0] === ">=") return { from: value[1] || "", to: "" };
+      if (value[0] === "<=") return { from: "", to: value[1] || "" };
+    } catch (e) {
+      // Ignore a malformed date filter in the URL.
+    }
+    return { from: "", to: "" };
+  }
+
+  function applyListDateFilter(field, from, to, searchInput) {
+    let start = from;
+    let end = to;
+    if (start && end && start > end) {
+      const swap = start;
+      start = end;
+      end = swap;
+    }
+    const params = new URLSearchParams();
+    const text = searchInput ? searchInput.value.trim() : "";
+    if (text) params.set("txt", text);
+    if (start && end) params.set(field, JSON.stringify(["between", [start, end]]));
+    else if (start) params.set(field, JSON.stringify([">=", start]));
+    else if (end) params.set(field, JSON.stringify(["<=", end]));
+    const query = params.toString();
+    window.location.href = window.location.pathname + (query ? "?" + query : "");
+  }
+
+  function formatDateFilterRange(from, to) {
+    const format = function (value, withYear) {
+      const parts = String(value || "").split("-");
+      if (parts.length !== 3) return value || "";
+      const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      const options = withYear
+        ? { day: "numeric", month: "short", year: "numeric" }
+        : { day: "numeric", month: "short" };
+      return date.toLocaleDateString("id-ID", options);
+    };
+    if (from && to) {
+      const sameYear = from.slice(0, 4) === to.slice(0, 4);
+      return format(from, !sameYear) + " – " + format(to, true);
+    }
+    if (from) return "≥ " + format(from, true);
+    if (to) return "≤ " + format(to, true);
+    return "";
+  }
+
+  function makeListDateField(captionText, value) {
+    const label = document.createElement("label");
+    label.className = "frc-date-field";
+    const caption = document.createElement("span");
+    caption.textContent = captionText;
+    const input = document.createElement("input");
+    input.type = "date";
+    input.className = "form-control";
+    input.value = value;
+    label.appendChild(caption);
+    label.appendChild(input);
+    return { label: label, input: input };
+  }
+
+  function initListFilters() {
+    const path = window.location.pathname.replace(/\/$/, "");
+    const field = listDateField(path);
+    if (!field || document.querySelector(".frc-date-filter")) return;
+
+    const list = document.querySelector(".website-list[data-doctype]");
+    let filters = document.querySelector(".website-list-filters");
+    const empty = document.querySelector(".page_content .empty-apps-state");
+    if (!list && !filters && !empty) return;
+
+    let row;
+    let col;
+    if (filters) {
+      row = filters.querySelector(".row");
+      col = row && row.querySelector(".col-6");
+    }
+    if (!filters) {
+      const host = document.querySelector(".page_content") || document.querySelector("main");
+      if (!host) return;
+      filters = document.createElement("div");
+      filters.className = "website-list-filters my-4";
+      row = document.createElement("div");
+      row.className = "row";
+      col = document.createElement("div");
+      col.className = "col-6";
+      row.appendChild(col);
+      filters.appendChild(row);
+      host.prepend(filters);
+    } else if (!row) {
+      row = document.createElement("div");
+      row.className = "row";
+      filters.appendChild(row);
+    }
+    if (!col) {
+      col = document.createElement("div");
+      col.className = "col-6";
+      row.appendChild(col);
+    }
+
+    const searchForm = filters.querySelector(".form-search");
+    const searchInput = searchForm && searchForm.querySelector('input[name="txt"]');
+    const initial = readListDateFilter(field);
+    const from = makeListDateField("Dari", initial.from);
+    const to = makeListDateField("Sampai", initial.to);
+
+    const details = document.createElement("details");
+    details.className = "frc-date-filter";
+    if (initial.from || initial.to) details.classList.add("frc-has-date");
+
+    const summary = document.createElement("summary");
+    summary.className = "frc-date-summary";
+    const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    icon.setAttribute("class", "icon icon-xs");
+    const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+    use.setAttribute("href", "#icon-calendar");
+    icon.appendChild(use);
+    const title = document.createElement("span");
+    title.textContent = "Tanggal";
+    const range = document.createElement("span");
+    range.className = "frc-date-summary-range";
+    range.textContent = formatDateFilterRange(initial.from, initial.to);
+    summary.appendChild(icon);
+    summary.appendChild(title);
+    if (range.textContent) summary.appendChild(range);
+
+    const panel = document.createElement("form");
+    panel.className = "frc-date-panel";
+    panel.method = "get";
+    panel.action = path;
+    const fields = document.createElement("div");
+    fields.className = "frc-date-panel-fields";
+    fields.appendChild(from.label);
+    fields.appendChild(to.label);
+    const actions = document.createElement("div");
+    actions.className = "frc-date-actions";
+    const apply = document.createElement("button");
+    apply.type = "submit";
+    apply.className = "btn btn-dark frc-date-apply";
+    apply.textContent = "Terapkan";
+    const reset = document.createElement("button");
+    reset.type = "button";
+    reset.className = "btn btn-link frc-date-reset";
+    reset.textContent = "Reset";
+    actions.appendChild(apply);
+    actions.appendChild(reset);
+    panel.appendChild(fields);
+    panel.appendChild(actions);
+
+    panel.addEventListener("submit", function (event) {
+      event.preventDefault();
+      applyListDateFilter(field, from.input.value, to.input.value, searchInput);
+    });
+    reset.addEventListener("click", function () {
+      from.input.value = "";
+      to.input.value = "";
+      applyListDateFilter(field, "", "", searchInput);
+    });
+    if (searchForm) {
+      searchForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+        applyListDateFilter(field, from.input.value, to.input.value, searchInput);
+      });
+    }
+
+    details.appendChild(summary);
+    details.appendChild(panel);
+    col.appendChild(details);
+  }
+
   function initQuoteList() {
     if (window.location.pathname.replace(/\/$/, "") !== "/quotations") return;
     const list = document.querySelector('.website-list[data-doctype="Quotation"]');
@@ -609,6 +887,7 @@
 
     if ($(".cart-container").length) initCart();
     else if ($(".order-container").length) initQuotation();
+    initListFilters();
     initQuoteList();
     watchProductPrices();
   });

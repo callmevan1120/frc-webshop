@@ -5,8 +5,8 @@ Cache-buster wajib di-bump setiap kali CSS/JS diubah.
 """
 
 # include js, css files in header of web template
-web_include_css = "/assets/<app>/css/frc-webshop.css?v=23"
-web_include_js = "/assets/<app>/js/frc-webshop.js?v=23"
+web_include_css = "/assets/<app>/css/frc-webshop.css?v=35"
+web_include_js = "/assets/<app>/js/frc-webshop.js?v=35"
 
 # FRC storefront uses the same portal shell as the quotation pages.
 update_website_context = [
