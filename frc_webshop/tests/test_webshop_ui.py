@@ -161,6 +161,14 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn('["Sales Order Item", "prevdoc_docname"', js)
         self.assertIn('["Delivery Note Item", "against_sales_order"', js)
         self.assertIn('["Sales Invoice Item", "sales_order"', js)
+        self.assertIn(
+            'const STAGE_LABELS = ["Quotation", "Sales Order", "Invoice", "Delivery"];',
+            js,
+        )
+        self.assertLess(
+            js.index('fetchRows("Sales Invoice", [["Sales Invoice Item"'),
+            js.index('fetchRows("Delivery Note", [["Delivery Note Item"'),
+        )
         self.assertIn("frc-pipeline", js)
         self.assertIn(".web-list-item", css)
         self.assertIn(".frc-pipeline", css)

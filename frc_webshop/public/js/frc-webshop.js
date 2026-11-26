@@ -552,7 +552,7 @@
   }
 
   const LIST_LIMIT = 20;
-  const STAGE_LABELS = ["Quotation", "Sales Order", "Delivery", "Invoice"];
+  const STAGE_LABELS = ["Quotation", "Sales Order", "Invoice", "Delivery"];
   const LIST_DATE_FIELDS = {
     Quotation: "transaction_date",
     "Sales Invoice": "posting_date",
@@ -596,8 +596,8 @@
       if (!orders.length) return [true, false, false, false];
       const order = orders[0].name;
       return Promise.all([
-        fetchRows("Delivery Note", [["Delivery Note Item", "against_sales_order", "=", order]]),
         fetchRows("Sales Invoice", [["Sales Invoice Item", "sales_order", "=", order]]),
+        fetchRows("Delivery Note", [["Delivery Note Item", "against_sales_order", "=", order]]),
       ]).then(function (results) {
         return [true, true, results[0].length > 0, results[1].length > 0];
       });

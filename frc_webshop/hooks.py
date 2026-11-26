@@ -7,8 +7,8 @@ app_license = "mit"
 
 required_apps = ["erpnext"]
 
-web_include_css = "/assets/frc_webshop/css/frc-webshop.css?v=38"
-web_include_js = "/assets/frc_webshop/js/frc-webshop.js?v=38"
+web_include_css = "/assets/frc_webshop/css/frc-webshop.css?v=39"
+web_include_js = "/assets/frc_webshop/js/frc-webshop.js?v=39"
 
 update_website_context = [
 	"frc_webshop.webshop_shell.enable_portal_sidebar",
