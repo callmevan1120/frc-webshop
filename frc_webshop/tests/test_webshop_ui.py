@@ -318,6 +318,23 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn(".frc-bottom-nav ul", mobile)
         self.assertIn("flex-direction: column", mobile)
 
+    def test_bottom_nav_is_not_rendered_on_login_page(self):
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
+        with open(js_path, encoding="utf-8") as js_file:
+            js = js_file.read()
+
+        nav = js.split("function addBottomNav() {", 1)[1].split("\n  }", 1)[0]
+        self.assertIn('document.body.dataset.path === "login"', nav)
+
+    def test_mobile_login_redirects_to_storefront(self):
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
+        with open(js_path, encoding="utf-8") as js_file:
+            js = js_file.read()
+
+        self.assertIn("function redirectMobileLoginToStorefront", js)
+        self.assertIn('frappe.local.form_dict.redirect_to = "/all-products"', js)
+        self.assertIn('window.matchMedia("(max-width: 991px)")', js)
+
     def test_bottom_nav_defeats_core_web_sidebar_positioning(self):
         css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:

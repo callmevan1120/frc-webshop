@@ -157,7 +157,28 @@
     ["/me", "Account"],
   ];
 
+  function redirectMobileLoginToStorefront() {
+    if (document.body.dataset.path !== "login") return;
+    if (!window.matchMedia("(max-width: 991px)").matches) return;
+    if (window.frappe && frappe.local && frappe.local.form_dict) {
+      frappe.local.form_dict.redirect_to = "/all-products";
+    }
+    document.querySelectorAll("form").forEach(function (form) {
+      let input = form.querySelector('[name="redirect-to"], [name="redirect_to"]');
+      if (!input) {
+        input = document.createElement("input");
+        input.type = "hidden";
+        input.name = "redirect-to";
+        form.appendChild(input);
+      }
+      if (!input.value || input.value === "/" || input.value === "/app") {
+        input.value = "/all-products";
+      }
+    });
+  }
+
   function addBottomNav() {
+    if (document.body.dataset.path === "login") return;
     if (document.querySelector(".frc-bottom-nav")) return;
     const list = document.createElement("ul");
     list.className = "list-unstyled";
@@ -922,6 +943,7 @@
     addProductsLink();
     addSidebarTooltips();
     initShellToggle();
+    redirectMobileLoginToStorefront();
     addBottomNav();
 
     if ($(".cart-container").length) initCart();
