@@ -1,7 +1,7 @@
 import frappe
 from frappe.tests import IntegrationTestCase
 
-ENDPOINT = "warehouse_app.webshop_ui.get_webshop_item_uoms"
+ENDPOINT = "frc_webshop.webshop_ui.get_webshop_item_uoms"
 
 
 class TestWebshopUI(IntegrationTestCase):
@@ -80,8 +80,8 @@ class TestWebshopUI(IntegrationTestCase):
             )
 
     def test_marketplace_shell_assets_present(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
         with open(js_path, encoding="utf-8") as js_file:
@@ -116,7 +116,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("?v=", hook_text("web_include_css"))
 
     def test_cart_totals_refresh_after_native_cart_update(self):
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
         with open(js_path, encoding="utf-8") as js_file:
             js = js_file.read()
 
@@ -124,7 +124,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("items = (r.message && r.message.doc && r.message.doc.items) || []", js)
 
     def test_all_products_uses_sales_uom_price(self):
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
         with open(js_path, encoding="utf-8") as js_file:
             js = js_file.read()
 
@@ -134,8 +134,8 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("formatted_price_sales_uom", js)
 
     def test_quotation_page_has_marketplace_cards(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
         with open(js_path, encoding="utf-8") as js_file:
@@ -149,8 +149,8 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("body:has(.sidebar-column) .main-column > .page-content-wrapper", css)
 
     def test_quotation_list_renders_pipeline_status(self):
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(js_path, encoding="utf-8") as js_file:
             js = js_file.read()
         with open(css_path, encoding="utf-8") as css_file:
@@ -166,7 +166,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn(".frc-pipeline", css)
 
     def test_quotation_summary_uses_formatted_values_from_endpoint(self):
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
         with open(js_path, encoding="utf-8") as js_file:
             js = js_file.read()
 
@@ -175,8 +175,8 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertNotIn("nativeGrandTotal", js)
 
     def test_shell_is_scoped_and_responsive(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
         with open(js_path, encoding="utf-8") as js_file:
@@ -201,7 +201,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("frc-sidebar-collapsed", js)
         self.assertIn("frc-sidebar-open", js)
     def test_mobile_navbar_stays_one_line(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
 
@@ -216,8 +216,8 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("top: 50%", css)
 
     def test_mobile_sidebar_becomes_bottom_nav(self):
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(js_path, encoding="utf-8") as js_file:
             js = js_file.read()
         with open(css_path, encoding="utf-8") as css_file:
@@ -239,7 +239,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("flex-direction: column", mobile)
 
     def test_bottom_nav_defeats_core_web_sidebar_positioning(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
 
@@ -254,7 +254,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("display: flex !important", mobile)
 
     def test_bottom_nav_uses_visible_routes_and_unstyled_list(self):
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
         with open(js_path, encoding="utf-8") as js_file:
             js = js_file.read()
 
@@ -267,8 +267,8 @@ class TestWebshopUI(IntegrationTestCase):
             self.assertIn('"' + route + '"', routes)
 
     def test_mobile_product_list_view_is_a_clean_card(self):
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(js_path, encoding="utf-8") as js_file:
             js = js_file.read()
         with open(css_path, encoding="utf-8") as css_file:
@@ -290,7 +290,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("padding-bottom", mobile)
 
     def test_desktop_sidebar_lists_products_before_cart(self):
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
         with open(js_path, encoding="utf-8") as js_file:
             js = js_file.read()
 
@@ -304,7 +304,7 @@ class TestWebshopUI(IntegrationTestCase):
         )
 
     def test_mobile_cards_use_the_quote_list_horizontal_padding(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
 
@@ -316,7 +316,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("padding: 16px 18px !important", product_row)
 
     def test_list_view_buttons_stay_inside_compact_card(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
 
@@ -329,7 +329,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("min-width: 0 !important", mobile)
 
     def test_mobile_list_children_share_one_clean_left_edge(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
 
@@ -347,7 +347,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("margin-left: 0 !important", mobile)
 
     def test_mobile_list_puts_price_before_quote_button(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
 
@@ -359,7 +359,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("display: contents", mobile)
 
     def test_mobile_list_looks_shopee_compact_row(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
 
@@ -373,7 +373,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("display: none !important", mobile)
 
     def test_mobile_list_shows_name_only_with_price_and_button_on_one_line(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
 
@@ -386,7 +386,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("width: auto !important", mobile)
 
     def test_view_toggler_never_forces_a_hidden_area_visible(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
 
@@ -407,8 +407,8 @@ class TestWebshopUI(IntegrationTestCase):
         )
 
     def test_storefront_pages_keep_padding_and_cart_icon(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
         with open(js_path, encoding="utf-8") as js_file:
@@ -420,7 +420,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn('icon.classList.remove("hidden")', js)
 
     def test_mobile_shell_keeps_one_page_gutter(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
 
@@ -433,7 +433,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertNotIn(".container:has(.sidebar-column) {\n\t\tpadding-left: 0", css)
 
     def test_mobile_main_column_fills_the_row(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
 
@@ -461,7 +461,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("margin-left: 0 !important", inner)
 
     def test_mobile_quote_pages_keep_their_native_gutter(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
 
@@ -473,7 +473,7 @@ class TestWebshopUI(IntegrationTestCase):
         )
 
     def test_mobile_quotation_detail_uses_the_wide_shell(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
 
@@ -501,7 +501,7 @@ class TestWebshopUI(IntegrationTestCase):
         )
 
     def test_list_filters_use_compact_date_panel(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
 
@@ -513,7 +513,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn(".frc-date-filter {\n\tposition: relative;", css)
         self.assertIn(".frc-date-panel {\n\tposition: absolute;", css)
 
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
         with open(js_path, encoding="utf-8") as js_file:
             js = js_file.read()
 
@@ -527,7 +527,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("frc-date-panel", js)
 
     def test_mobile_bottom_nav_reserves_page_space(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
 
@@ -544,7 +544,7 @@ class TestWebshopUI(IntegrationTestCase):
         )
 
     def test_webshop_caches_product_api_responses(self):
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
         with open(js_path, encoding="utf-8") as js_file:
             js = js_file.read()
 
@@ -559,7 +559,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("#page-cart .cart-container", js)
 
     def test_mobile_list_area_aligns_with_page_content(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
 
@@ -569,7 +569,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("margin-right: 0 !important", rule)
 
     def test_mobile_cart_qty_controls_stay_on_one_row(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
 
@@ -580,7 +580,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("tbody.cart-items .number-spinner {\n\twidth: 106px;\n\tmin-width: 106px;", css)
 
     def test_mobile_cart_hides_the_decorative_item_checkbox(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
 
@@ -591,7 +591,7 @@ class TestWebshopUI(IntegrationTestCase):
         )
 
     def test_mobile_cart_line_total_sits_on_the_qty_row(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
 
@@ -610,7 +610,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("margin-left: auto", total)
 
     def test_navbar_cart_moves_right_and_hamburger_stays_above_drawer(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
 
@@ -627,8 +627,8 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn(".navbar .shopping-badge {", css)
 
     def test_cart_looks_shopee_and_product_grid_is_default(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
         with open(js_path, encoding="utf-8") as js_file:
@@ -642,12 +642,12 @@ class TestWebshopUI(IntegrationTestCase):
 
     def test_storefront_pages_register_portal_sidebar_hook(self):
         self.assertIn(
-            "warehouse_app.webshop_shell.enable_portal_sidebar",
+            "frc_webshop.webshop_shell.enable_portal_sidebar",
             frappe.get_hooks("update_website_context"),
         )
 
     def test_sidebar_includes_cart_link(self):
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
         with open(js_path, encoding="utf-8") as js_file:
             js = js_file.read()
 
@@ -655,7 +655,7 @@ class TestWebshopUI(IntegrationTestCase):
 
     def test_portal_sidebar_hook_scoped_to_storefront_routes(self):
         enable_sidebar = frappe.get_attr(
-            "warehouse_app.webshop_shell.enable_portal_sidebar"
+            "frc_webshop.webshop_shell.enable_portal_sidebar"
         )
         original_path = getattr(frappe.local, "path", None)
         try:
@@ -669,8 +669,8 @@ class TestWebshopUI(IntegrationTestCase):
             frappe.local.path = original_path
 
     def test_web_shell_matches_erpnext_desk_sidebar(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
         with open(js_path, encoding="utf-8") as js_file:
@@ -688,7 +688,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertNotIn("#frc-sidebar-backdrop", css)
         self.assertNotIn("frc-sidebar-backdrop", js)
     def test_quotation_detail_is_one_clean_card(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
 
@@ -696,7 +696,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn(".frc-detail-form", css)
 
     def test_quotation_list_paints_pipeline_before_async_fetch(self):
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
         with open(js_path, encoding="utf-8") as js_file:
             js = js_file.read()
 
@@ -705,7 +705,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("[true, false, false, false]", js)
 
     def test_collapsed_sidebar_keeps_icon_rail_visible(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
 
@@ -715,7 +715,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertNotIn("body.frc-sidebar-collapsed .web-sidebar {\n\tdisplay: none;", css)
 
     def test_sidebar_only_shows_storefront_destinations(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
 
@@ -731,8 +731,8 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertNotIn('a[href="/orders"],', css)
 
     def test_quotation_detail_renders_owner_and_customer_meta(self):
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(js_path, encoding="utf-8") as js_file:
             js = js_file.read()
         with open(css_path, encoding="utf-8") as css_file:
@@ -746,7 +746,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn(".frc-detail-field", css)
 
     def test_detail_total_uses_endpoint_meta(self):
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
         with open(js_path, encoding="utf-8") as js_file:
             js = js_file.read()
 
@@ -755,10 +755,10 @@ class TestWebshopUI(IntegrationTestCase):
 
     def test_orders_are_hidden_from_sidebar_and_redirected(self):
         self.assertIn(
-            "warehouse_app.webshop_shell.close_orders_route",
+            "frc_webshop.webshop_shell.close_orders_route",
             frappe.get_hooks("update_website_context"),
         )
-        close_route = frappe.get_attr("warehouse_app.webshop_shell.close_orders_route")
+        close_route = frappe.get_attr("frc_webshop.webshop_shell.close_orders_route")
         original_path = getattr(frappe.local, "path", None)
         original_redirect = getattr(frappe.flags, "redirect_location", None)
         try:
@@ -790,7 +790,7 @@ class TestWebshopUI(IntegrationTestCase):
             frappe.flags.redirect_location = original_redirect
 
     def test_invoices_require_frc_customer(self):
-        hook = "warehouse_app.webshop_shell.InvoiceAccessRedirect"
+        hook = "frc_webshop.webshop_shell.InvoiceAccessRedirect"
         self.assertIn(hook, frappe.get_hooks("page_renderer"))
         renderer = frappe.get_attr(hook)
 
@@ -814,8 +814,8 @@ class TestWebshopUI(IntegrationTestCase):
             frappe.local.path = original_path
 
     def test_quotation_detail_has_status_and_next_step_without_receipts(self):
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(js_path, encoding="utf-8") as js_file:
             js = js_file.read()
         with open(css_path, encoding="utf-8") as css_file:
@@ -827,7 +827,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn(".frc-next-step", css)
 
     def test_hamburger_aligns_with_sidebar_icon_padding(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
 
@@ -843,8 +843,8 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("left: 38px;", collapsed)
 
     def test_quotation_detail_uses_marketplace_order_detail(self):
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(js_path, encoding="utf-8") as js_file:
             js = js_file.read()
         with open(css_path, encoding="utf-8") as css_file:
@@ -886,8 +886,8 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertLess(form.index("buildPaymentSection("), form.index("buildTimestampSection("))
 
     def test_quotation_detail_uses_erpnext_form_layout(self):
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(js_path, encoding="utf-8") as js_file:
             js = js_file.read()
         with open(css_path, encoding="utf-8") as css_file:
@@ -906,7 +906,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("body[data-path=\"portal\"] .page-header h3 {\n\tfont-size: 26px;\n}", css)
 
     def test_invoice_redirect_returns_302_without_raising(self):
-        renderer = frappe.get_attr("warehouse_app.webshop_shell.InvoiceAccessRedirect")
+        renderer = frappe.get_attr("frc_webshop.webshop_shell.InvoiceAccessRedirect")
         original_user = frappe.session.user
         original_path = getattr(frappe.local, "path", None)
         original_redirect = getattr(frappe.flags, "redirect_location", None)
@@ -923,8 +923,8 @@ class TestWebshopUI(IntegrationTestCase):
             frappe.flags.redirect_location = original_redirect
 
     def test_detail_hides_duplicate_owner_and_status_from_header(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
         with open(js_path, encoding="utf-8") as js_file:
@@ -937,7 +937,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertNotIn("frc-order-badge", header)
 
     def test_collapsed_sidebar_links_get_hover_labels(self):
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
         with open(js_path, encoding="utf-8") as js_file:
             js = js_file.read()
 
@@ -948,8 +948,8 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn('setAttribute("title"', helper)
 
     def test_detail_status_badge_sits_right_of_title(self):
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(js_path, encoding="utf-8") as js_file:
             js = js_file.read()
         with open(css_path, encoding="utf-8") as css_file:
@@ -968,7 +968,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("margin-left: auto;", status_css)
 
     def test_detail_timestamps_show_clock_only(self):
-        js_path = frappe.get_app_path("warehouse_app", "public", "js", "frc-webshop.js")
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
         with open(js_path, encoding="utf-8") as js_file:
             js = js_file.read()
 
@@ -980,7 +980,7 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("clockTime(meta && meta.modified)", timestamps)
 
     def test_sidebar_hides_actual_portal_routes(self):
-        css_path = frappe.get_app_path("warehouse_app", "public", "css", "frc-webshop.css")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         with open(css_path, encoding="utf-8") as css_file:
             css = css_file.read()
 

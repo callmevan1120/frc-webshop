@@ -867,7 +867,7 @@
     const container = document.querySelector(".order-container");
     if (container) container.classList.add(SHOP_CLASS);
     frappe.call({
-      method: "warehouse_app.webshop_ui.get_webshop_item_uoms",
+      method: "frc_webshop.webshop_ui.get_webshop_item_uoms",
       args: { doctype: "Quotation", name: decodeURIComponent(match[1]) },
       callback: function (r) {
         if (!r.message || !Array.isArray(r.message.items)) return;
