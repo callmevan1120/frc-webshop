@@ -806,6 +806,19 @@ body[data-path="order"] .page_content > div:first-child {
 	body[data-path="invoices"] .row:has(.sidebar-column) > .main-column {
 		padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
 	}
+
+	body:has(.website-list.frc-quote-list) main.container {
+		padding-left: 0 !important;
+		padding-right: 0 !important;
+	}
+
+	body:has(.website-list.frc-quote-list) .website-list {
+		width: 100% !important;
+		margin-left: 0 !important;
+		margin-right: 0 !important;
+		padding-left: 0 !important;
+		padding-right: 0 !important;
+	}
 }
 
 /* Portal list filters (Quotations / Invoices) ---------------------------- */

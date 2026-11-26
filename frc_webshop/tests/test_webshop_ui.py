@@ -225,6 +225,18 @@ class TestWebshopUI(IntegrationTestCase):
             css,
         )
 
+    def test_mobile_transaction_list_uses_full_content_width(self):
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
+        with open(css_path, encoding="utf-8") as css_file:
+            css = css_file.read()
+
+        self.assertIn("body:has(.website-list.frc-quote-list) main.container {", css)
+        self.assertIn("padding-left: 0 !important;", css)
+        self.assertIn("padding-right: 0 !important;", css)
+        self.assertIn("body:has(.website-list.frc-quote-list) .website-list {", css)
+        self.assertIn("margin-left: 0 !important;", css)
+        self.assertIn("width: 100% !important;", css)
+
     def test_quotation_summary_uses_formatted_values_from_endpoint(self):
         js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
         with open(js_path, encoding="utf-8") as js_file:
