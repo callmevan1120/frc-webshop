@@ -165,6 +165,66 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn(".web-list-item", css)
         self.assertIn(".frc-pipeline", css)
 
+    def test_quotation_list_shows_custom_row_instead_of_native_stack(self):
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
+        with open(css_path, encoding="utf-8") as css_file:
+            css = css_file.read()
+
+        anchor = css.split(".website-list.frc-quote-list .web-list-item > a {", 1)[1].split("}", 1)[0]
+        for expected in (
+            "position: static",
+            "width: auto",
+            "height: auto",
+            "opacity: 1",
+            "overflow: visible",
+            "text-indent: 0",
+        ):
+            self.assertIn(expected, anchor)
+
+        self.assertIn(
+            ".website-list.frc-quote-list .web-list-item > .row {\n\tdisplay: none;\n}",
+            css,
+        )
+        card = css.split(".website-list.frc-quote-list .web-list-item {", 1)[1].split("}", 1)[0]
+        self.assertIn("padding: 0;", card)
+
+        self.assertIn('grid-template-areas: "main status" "pipeline pipeline";', css)
+        self.assertIn('grid-template-areas: "main status";', css)
+        self.assertIn("justify-self: end;", css)
+
+    def test_invoice_list_uses_the_same_compact_row(self):
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
+        with open(js_path, encoding="utf-8") as js_file:
+            js = js_file.read()
+        with open(css_path, encoding="utf-8") as css_file:
+            css = css_file.read()
+
+        self.assertIn("function initInvoiceList()", js)
+        self.assertIn('data-doctype="Sales Invoice"', js)
+        self.assertIn("initInvoiceList();", js)
+        self.assertIn('dateField: "posting_date"', js)
+        self.assertIn("withPipeline: false", js)
+        self.assertIn(".frc-quote-row.frc-no-pipeline", css)
+
+    def test_mobile_quotation_and_invoice_lists_clear_the_bottom_nav(self):
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
+        with open(css_path, encoding="utf-8") as css_file:
+            css = css_file.read()
+
+        self.assertIn(
+            'body[data-path="quotations"] .row:has(.sidebar-column) > .main-column,',
+            css,
+        )
+        self.assertIn(
+            'body[data-path="invoices"] .row:has(.sidebar-column) > .main-column {',
+            css,
+        )
+        self.assertIn(
+            "padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;",
+            css,
+        )
+
     def test_quotation_summary_uses_formatted_values_from_endpoint(self):
         js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
         with open(js_path, encoding="utf-8") as js_file:

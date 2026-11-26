@@ -611,22 +611,32 @@
     }).join('<span class="frc-step-arrow">›</span>');
   }
 
-  function paintQuoteRow(item, name, quote, states) {
+  function listDate(value) {
+    const parts = String(value || "").split("-");
+    if (parts.length !== 3) return value || "";
+    const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    return date.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+  }
+
+  function paintQuoteRow(item, name, quote, states, options) {
     const link = item.querySelector("a[href]");
     if (!link) return;
-    const status = quote.docstatus === 2 ? "Cancelled" : quote.docstatus === 1 ? "Submitted" : quote.status || (quote.name ? "Draft" : "Menunggu");
+    const opts = options || {};
+    const withPipeline = opts.withPipeline !== false;
+    const dateField = opts.dateField || "transaction_date";
+    const status = quote.status || (quote.docstatus === 2 ? "Cancelled" : quote.docstatus === 1 ? "Submitted" : quote.name ? "Draft" : "Menunggu");
     link.innerHTML =
-      '<div class="frc-quote-row">' +
+      '<div class="frc-quote-row' + (withPipeline ? "" : " frc-no-pipeline") + '">' +
         '<div class="frc-quote-main">' +
           '<div class="frc-quote-no"></div>' +
           '<div class="frc-quote-meta"></div>' +
         "</div>" +
-        '<div class="frc-pipeline">' + stageMarkup(states) + "</div>" +
+        (withPipeline ? '<div class="frc-pipeline">' + stageMarkup(states) + "</div>" : "") +
         '<div class="frc-quote-status"></div>' +
       "</div>";
     link.querySelector(".frc-quote-no").textContent = name;
     link.querySelector(".frc-quote-meta").textContent = [
-      quote.transaction_date,
+      listDate(quote[dateField]),
       quote.grand_total ? money(quote.grand_total) : "",
     ].filter(Boolean).join(" · ");
     link.querySelector(".frc-quote-status").textContent = status;
@@ -846,6 +856,35 @@
     });
   }
 
+  function initInvoiceList() {
+    if (window.location.pathname.replace(/\/$/, "") !== "/invoices") return;
+    const list = document.querySelector('.website-list[data-doctype="Sales Invoice"]');
+    if (!list || list.classList.contains("frc-quote-list")) return;
+    list.classList.add("frc-quote-list");
+    const items = Array.from(list.querySelectorAll(".web-list-item")).slice(0, LIST_LIMIT);
+    const names = items.map(function (item) {
+      return quoteNameFromLink(item.querySelector("a[href]"));
+    }).filter(Boolean);
+    if (!names.length) return;
+
+    const options = { dateField: "posting_date", withPipeline: false };
+    items.forEach(function (item) {
+      const name = quoteNameFromLink(item.querySelector("a[href]"));
+      paintQuoteRow(item, name, {}, [], options);
+    });
+
+    fetchRows("Sales Invoice", [["name", "in", names]], [
+      "name", "status", "docstatus", "grand_total", "posting_date",
+    ], 0).then(function (invoices) {
+      const byName = {};
+      invoices.forEach(function (invoice) { byName[invoice.name] = invoice; });
+      items.forEach(function (item) {
+        const name = quoteNameFromLink(item.querySelector("a[href]"));
+        paintQuoteRow(item, name, byName[name] || {}, [], options);
+      });
+    });
+  }
+
   function nextStepFor(meta) {
     if (!meta) return "Menunggu konfirmasi FRC";
     if (meta.docstatus === 2) return "Quotation dibatalkan";
@@ -889,6 +928,7 @@
     else if ($(".order-container").length) initQuotation();
     initListFilters();
     initQuoteList();
+    initInvoiceList();
     watchProductPrices();
   });
 })();

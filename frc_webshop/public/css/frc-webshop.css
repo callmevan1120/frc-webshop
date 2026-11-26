@@ -686,21 +686,46 @@ body[data-path="order"] .page_content > div:first-child {
 /* Quotation list -------------------------------------------------------- */
 .website-list.frc-quote-list .web-list-item {
 	margin: 0 0 10px;
+	padding: 0;
 	border: 1px solid var(--border-color);
 	border-radius: 12px;
 	background: #fff;
 }
 
 .website-list.frc-quote-list .web-list-item > a {
+	position: static;
 	display: block;
+	width: auto;
+	height: auto;
 	padding: 16px 18px;
+	overflow: visible;
+	opacity: 1;
+	text-indent: 0;
+	text-decoration: none;
+	z-index: auto;
+}
+
+/* ERPNext hides .transaction-item-link over the native row; the custom row lives inside it. */
+.website-list.frc-quote-list .web-list-item > .row {
+	display: none;
 }
 
 .website-list.frc-quote-list .frc-quote-row {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) auto auto;
+	grid-template-areas: "main pipeline status";
 	align-items: center;
 	gap: 16px;
+}
+
+.website-list.frc-quote-list .frc-quote-row.frc-no-pipeline {
+	grid-template-columns: minmax(0, 1fr) auto;
+	grid-template-areas: "main status";
+}
+
+.website-list.frc-quote-list .frc-quote-main {
+	grid-area: main;
+	min-width: 0;
 }
 
 .website-list.frc-quote-list .frc-quote-no {
@@ -716,6 +741,8 @@ body[data-path="order"] .page_content > div:first-child {
 }
 
 .website-list.frc-quote-list .frc-quote-status {
+	grid-area: status;
+	justify-self: end;
 	min-width: 84px;
 	padding: 4px 10px;
 	border-radius: 999px;
@@ -727,6 +754,7 @@ body[data-path="order"] .page_content > div:first-child {
 }
 
 .website-list.frc-quote-list .frc-pipeline {
+	grid-area: pipeline;
 	display: flex;
 	align-items: center;
 	gap: 6px;
@@ -752,13 +780,31 @@ body[data-path="order"] .page_content > div:first-child {
 }
 
 @media (max-width: 767px) {
+	.website-list.frc-quote-list .web-list-item > a {
+		padding: 14px 16px;
+	}
+
 	.website-list.frc-quote-list .frc-quote-row {
 		grid-template-columns: minmax(0, 1fr) auto;
+		grid-template-areas: "main status" "pipeline pipeline";
+		gap: 10px 12px;
 	}
 
 	.website-list.frc-quote-list .frc-pipeline {
 		grid-column: 1 / -1;
 		flex-wrap: wrap;
+	}
+
+	.website-list.frc-quote-list .frc-step {
+		padding: 3px 7px;
+		font-size: 10px;
+	}
+}
+
+@media (max-width: 991px) {
+	body[data-path="quotations"] .row:has(.sidebar-column) > .main-column,
+	body[data-path="invoices"] .row:has(.sidebar-column) > .main-column {
+		padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
 	}
 }
 
