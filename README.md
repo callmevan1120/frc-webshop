@@ -19,7 +19,7 @@ Frappe/ERPNext 15–16 (lihat `pyproject.toml`).
 | `frc_webshop/public/css/frc-webshop.css` | Styling shell, bottom nav, detail Quotation, List View mobile, chip/popover filter tanggal |
 | `frc_webshop/public/js/frc-webshop.js` | Shell, bottom nav, builder detail, price/UOM decoration, filter tanggal server-side |
 | `frc_webshop/setup/frc_webshop_local.py` | Setup/teardown lokal untuk 48 Customer FRC (idempoten) |
-| `frc_webshop/tests/test_webshop_ui.py` | 68 test regresi UI + hook + gate |
+| `frc_webshop/tests/test_webshop_ui.py` | 69 test regresi UI + hook + gate |
 | `docs/frc-webshop-quickstart.md` | Alur lokal FRC → Finance → Gudang |
 
 ## Pasang di bench
@@ -56,7 +56,7 @@ Test regresi dijalankan di app tujuan:
 bench --site <site> run-tests --module frc_webshop.tests.test_webshop_ui
 ```
 
-Pastikan 68 test lolos sebelum deploy. Sebagian test memakai data FRC lokal
+Pastikan 69 test lolos sebelum deploy. Sebagian test memakai data FRC lokal
 (`erp.localhost`), jadi siapkan fixture yang sama bila dijalankan di site lain.
 
 ## Batasan desain
@@ -74,5 +74,5 @@ Pastikan 68 test lolos sebelum deploy. Sebagian test memakai data FRC lokal
 
 ## Status
 
-Kode di repo ini disalin dari workspace lokal pada 2026-11-26 (v40). Belum ada
+Kode di repo ini disalin dari workspace lokal pada 2026-11-27 (v43). Belum ada
 perubahan struktur Data, migrate, atau endpoint baru.

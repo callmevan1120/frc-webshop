@@ -157,24 +157,12 @@
     ["/me", "Account"],
   ];
 
-  function redirectMobileLoginToStorefront() {
+  function redirectLoginToStorefront() {
     if (document.body.dataset.path !== "login") return;
-    if (!window.matchMedia("(max-width: 991px)").matches) return;
-    if (window.frappe && frappe.local && frappe.local.form_dict) {
-      frappe.local.form_dict.redirect_to = "/all-products";
-    }
-    document.querySelectorAll("form").forEach(function (form) {
-      let input = form.querySelector('[name="redirect-to"], [name="redirect_to"]');
-      if (!input) {
-        input = document.createElement("input");
-        input.type = "hidden";
-        input.name = "redirect-to";
-        form.appendChild(input);
-      }
-      if (!input.value || input.value === "/" || input.value === "/app") {
-        input.value = "/all-products";
-      }
-    });
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("redirect-to") === "/all-products") return;
+    url.searchParams.set("redirect-to", "/all-products");
+    window.history.replaceState(null, "", url);
   }
 
   function addBottomNav() {
@@ -539,8 +527,9 @@
   }
 
   function alignSalesUomPrices() {
-    ["#products-grid-area", "#products-list-area"].forEach(function (selector) {
-      document.querySelectorAll(selector + " .item-card").forEach(function (card) {
+    document
+      .querySelectorAll("#products-grid-area .item-card, #products-list-area .list-row")
+      .forEach(function (card) {
         if (card.getAttribute(PRICED)) return;
         const button = card.querySelector("[data-item-code]");
         const itemCode = button && button.getAttribute("data-item-code");
@@ -554,7 +543,6 @@
           },
         });
       });
-    });
   }
 
   function watchProductPrices() {
@@ -943,7 +931,7 @@
     addProductsLink();
     addSidebarTooltips();
     initShellToggle();
-    redirectMobileLoginToStorefront();
+    redirectLoginToStorefront();
     addBottomNav();
 
     if ($(".cart-container").length) initCart();

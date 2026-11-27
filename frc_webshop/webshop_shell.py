@@ -25,6 +25,22 @@ def close_orders_route(context):
 		raise frappe.Redirect
 
 
+class StorefrontLoginRedirect(RedirectPage):
+	"""Require login before showing the storefront catalog."""
+
+	def __init__(self, path=None, http_status_code=None):
+		path = (getattr(frappe.local, "path", "") or path or "").strip("/")
+		super().__init__(path, 302)
+		self.blocked = path == "all-products"
+
+	def can_render(self):
+		return self.blocked and frappe.session.user == "Guest"
+
+	def render(self):
+		frappe.flags.redirect_location = "/login?redirect-to=/all-products"
+		return super().render()
+
+
 class InvoiceAccessRedirect(RedirectPage):
 	"""Send non-FRC visitors away from /invoices before the page renders."""
 

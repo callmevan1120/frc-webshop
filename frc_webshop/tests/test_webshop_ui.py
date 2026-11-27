@@ -132,6 +132,9 @@ class TestWebshopUI(IntegrationTestCase):
             "webshop.webshop.shopping_cart.product_info.get_product_info_for_website", js
         )
         self.assertIn("formatted_price_sales_uom", js)
+        self.assertIn(
+            "#products-grid-area .item-card, #products-list-area .list-row", js
+        )
 
     def test_quotation_page_has_marketplace_cards(self):
         css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
@@ -326,14 +329,14 @@ class TestWebshopUI(IntegrationTestCase):
         nav = js.split("function addBottomNav() {", 1)[1].split("\n  }", 1)[0]
         self.assertIn('document.body.dataset.path === "login"', nav)
 
-    def test_mobile_login_redirects_to_storefront(self):
+    def test_login_redirects_to_storefront(self):
         js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
         with open(js_path, encoding="utf-8") as js_file:
             js = js_file.read()
 
-        self.assertIn("function redirectMobileLoginToStorefront", js)
-        self.assertIn('frappe.local.form_dict.redirect_to = "/all-products"', js)
-        self.assertIn('window.matchMedia("(max-width: 991px)")', js)
+        self.assertIn("function redirectLoginToStorefront", js)
+        self.assertIn('url.searchParams.set("redirect-to", "/all-products")', js)
+        self.assertIn("window.history.replaceState", js)
 
     def test_bottom_nav_defeats_core_web_sidebar_positioning(self):
         css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
@@ -909,6 +912,32 @@ class TestWebshopUI(IntegrationTestCase):
         finally:
             frappe.set_user(original_user)
             frappe.local.path = original_path
+
+    def test_storefront_catalog_requires_login(self):
+        hook = "frc_webshop.webshop_shell.StorefrontLoginRedirect"
+        self.assertIn(hook, frappe.get_hooks("page_renderer"))
+        renderer = frappe.get_attr(hook)
+
+        original_user = frappe.session.user
+        original_path = getattr(frappe.local, "path", None)
+        original_redirect = getattr(frappe.flags, "redirect_location", None)
+        try:
+            frappe.local.path = "all-products"
+            frappe.set_user("Guest")
+            self.assertTrue(renderer("all-products").can_render())
+            response = renderer("all-products").render()
+            self.assertEqual(response.status_code, 302)
+            self.assertEqual(
+                response.headers.get("Location"),
+                "/login?redirect-to=/all-products",
+            )
+
+            frappe.set_user("Administrator")
+            self.assertFalse(renderer("all-products").can_render())
+        finally:
+            frappe.set_user(original_user)
+            frappe.local.path = original_path
+            frappe.flags.redirect_location = original_redirect
 
     def test_quotation_detail_has_status_and_next_step_without_receipts(self):
         js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
