@@ -136,6 +136,23 @@ class TestWebshopUI(IntegrationTestCase):
             "#products-grid-area .item-card, #products-list-area .list-row", js
         )
 
+    def test_factory_finished_goods_are_published(self):
+        from frc_webshop.setup.publish_factory_items import publish_factory_items
+
+        publish_factory_items()
+        item_codes = frappe.get_all(
+            "Item",
+            filters={"item_group": "Produk Jadi Pabrik", "disabled": 0},
+            pluck="name",
+        )
+        self.assertTrue(item_codes)
+        for item_code in item_codes:
+            website_item = frappe.db.get_value(
+                "Website Item", {"item_code": item_code}, ["name", "published"]
+            )
+            self.assertTrue(website_item, item_code)
+            self.assertEqual(website_item[1], 1, item_code)
+
     def test_quotation_page_has_marketplace_cards(self):
         css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
