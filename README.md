@@ -2,8 +2,9 @@
 
 Kustomisasi **storefront FRC** di atas Webshop ERPNext: satu shell portal yang rapi,
 halaman detail Quotation/Invoice bergaya marketplace, tampilan **All Products** mobile
-yang ringkas, serta filter tanggal ringkas untuk daftar Quotation/Invoice.
-Desktop tetap memakai layout asli; filter tanggal tampil sebagai chip/popover.
+yang ringkas dengan search kartu dan klik kartu untuk menambah qty, serta filter
+tanggal ringkas untuk daftar Quotation/Invoice. Desktop tetap memakai layout asli;
+filter tanggal tampil sebagai chip/popover.
 
 Repo ini adalah **app Frappe mandiri** dengan nama app `frc_webshop`. Target:
 Frappe/ERPNext 15–16 (lihat `pyproject.toml`).
@@ -16,10 +17,10 @@ Frappe/ERPNext 15–16 (lihat `pyproject.toml`).
 | `frc_webshop/hooks.py` | Hook asset, portal sidebar, dan invoice gate |
 | `frc_webshop/webshop_shell.py` | Portal sidebar, redirect `/orders`, gate `/invoices`, izin detail invoice untuk admin |
 | `frc_webshop/webshop_ui.py` | Endpoint aman `get_webshop_item_uoms` untuk detail Quotation dan Invoice |
-| `frc_webshop/public/css/frc-webshop.css` | Styling shell, bottom nav, detail Quotation/Invoice, List View mobile, chip/popover filter tanggal |
-| `frc_webshop/public/js/frc-webshop.js` | Shell, bottom nav, builder detail, price/UOM decoration, filter tanggal server-side |
+| `frc_webshop/public/css/frc-webshop.css` | Styling shell, bottom nav, detail Quotation/Invoice, All Products search, List View mobile, chip/popover filter tanggal |
+| `frc_webshop/public/js/frc-webshop.js` | Shell, bottom nav, builder detail, search/filter kartu, lazy price/UOM, klik kartu +qty, filter tanggal server-side |
 | `frc_webshop/setup/frc_webshop_local.py` | Setup/teardown lokal untuk 48 Customer FRC (idempoten) |
-| `frc_webshop/tests/test_webshop_ui.py` | 76 test regresi UI + hook + gate |
+| `frc_webshop/tests/test_webshop_ui.py` | 78 test regresi UI + hook + gate |
 | `docs/frc-webshop-quickstart.md` | Alur lokal FRC → Finance → Gudang |
 
 ## Pasang di bench
@@ -57,7 +58,7 @@ Test regresi dijalankan di app tujuan:
 bench --site <site> run-tests --module frc_webshop.tests.test_webshop_ui
 ```
 
-Pastikan 76 test lolos sebelum deploy. Sebagian test memakai data FRC lokal
+Pastikan 78 test lolos sebelum deploy. Sebagian test memakai data FRC lokal
 (`erp.localhost`), jadi siapkan fixture yang sama bila dijalankan di site lain.
 
 ## Batasan desain
@@ -69,6 +70,8 @@ Pastikan 76 test lolos sebelum deploy. Sebagian test memakai data FRC lokal
   utama hitam.
 - Harga, tanggal, dan status di detail **hanya** dari data Quotation/Sales Invoice
   yang ada. Detail Invoice memakai builder yang sama dengan Quotation, termasuk qty/UOM.
+- All Products: search menyaring kartu di browser; klik kartu menambah 1 qty dan klik
+  berikutnya menambah lagi. Gambar/harga dimuat bertahap, dan daftar di-cache 5 menit.
 - Admin/System Manager dibolehkan mengakses `/invoices` dan detail `/invoices/<name>`;
   customer tetap lewat website permission. Route `/orders` ditutup untuk semua.
 - Filter tanggal daftar Quotation memakai `transaction_date`; daftar Invoice memakai
@@ -76,5 +79,5 @@ Pastikan 76 test lolos sebelum deploy. Sebagian test memakai data FRC lokal
 
 ## Status
 
-Kode di repo ini disalin dari workspace lokal pada 2026-11-27 (v45). Tidak ada
+Kode di repo ini disalin dari workspace lokal pada 2026-11-27 (v47). Tidak ada
 perubahan struktur data atau migrate.

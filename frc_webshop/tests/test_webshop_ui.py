@@ -181,6 +181,34 @@ class TestWebshopUI(IntegrationTestCase):
             "#products-grid-area .item-card, #products-list-area .list-row", js
         )
 
+    def test_all_products_search_filters_cards_instead_of_navigating(self):
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
+        css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
+        with open(js_path, encoding="utf-8") as js_file:
+            js = js_file.read()
+        with open(css_path, encoding="utf-8") as css_file:
+            css = css_file.read()
+
+        self.assertIn("function filterProductCards(", js)
+        self.assertIn("function initProductSearchFilter(", js)
+        self.assertIn("#product-scroll .dropdown-item a", js)
+        self.assertIn("event.preventDefault();", js)
+        self.assertIn(".frc-search-hidden", css)
+        self.assertIn(".frc-search-empty", css)
+
+    def test_all_products_lazily_loads_prices_and_adds_card_qty(self):
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
+        with open(js_path, encoding="utf-8") as js_file:
+            js = js_file.read()
+
+        self.assertIn("function observeSalesUomPrices(", js)
+        self.assertIn("new IntersectionObserver(", js)
+        self.assertIn('img.loading = "lazy"', js)
+        self.assertIn("function addCardQty(", js)
+        self.assertIn("function markCardAdded(", js)
+        self.assertIn("_frcQty", js)
+        self.assertIn("update_cart", js)
+
     def test_storefront_items_are_published(self):
         from frc_webshop.setup.publish_storefront_items import (
             get_storefront_items,
@@ -729,7 +757,7 @@ class TestWebshopUI(IntegrationTestCase):
         with open(js_path, encoding="utf-8") as js_file:
             js = js_file.read()
 
-        self.assertIn('"webshop.webshop.api.get_product_filter_data": CACHE_TTL', js)
+        self.assertIn('"webshop.webshop.api.get_product_filter_data": LIST_CACHE_TTL', js)
         self.assertIn("[PRICE_METHOD]: CACHE_TTL", js)
         self.assertIn("sessionStorage.setItem(key", js)
         self.assertIn("function clearApiCache()", js)

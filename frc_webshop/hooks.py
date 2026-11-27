@@ -9,8 +9,8 @@ required_apps = ["erpnext"]
 
 before_request = ["frc_webshop.webshop_shell.allow_admin_invoice_detail"]
 
-web_include_css = "/assets/frc_webshop/css/frc-webshop.css?v=45"
-web_include_js = "/assets/frc_webshop/js/frc-webshop.js?v=45"
+web_include_css = "/assets/frc_webshop/css/frc-webshop.css?v=47"
+web_include_js = "/assets/frc_webshop/js/frc-webshop.js?v=47"
 
 update_website_context = [
 	"frc_webshop.webshop_shell.enable_portal_sidebar",

@@ -1551,6 +1551,25 @@ body[data-path="all-products"] #products-grid-area .card-body > a:has(.btn-add-t
 	margin-top: auto !important;
 }
 
+body[data-path="all-products"] #products-grid-area .item-card {
+	cursor: pointer;
+}
+
+body[data-path="all-products"] .frc-search-hidden {
+	display: none !important;
+}
+
+body[data-path="all-products"] .frc-search-empty {
+	margin: 24px 0;
+	padding: 24px;
+	border: 1px dashed var(--border-color, #e9ecef);
+	border-radius: 12px;
+	background: #fff;
+	color: var(--text-muted);
+	font-size: 14px;
+	text-align: center;
+}
+
 @media (max-width: 1199px) {
 	body[data-path="all-products"] #products-grid-area {
 		grid-template-columns: repeat(3, minmax(0, 1fr));
