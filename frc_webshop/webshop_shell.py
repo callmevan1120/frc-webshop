@@ -5,6 +5,11 @@ STOREFRONT_ROUTES = {"cart", "all-products"}
 REDIRECT_HOME = "/all-products"
 
 
+def is_frc_admin(user=None):
+	user = user or frappe.session.user
+	return user == "Administrator" or "System Manager" in frappe.get_roles(user)
+
+
 def enable_portal_sidebar(context):
 	# Frappe calls this for every website page; gate on the exact storefront route.
 	if getattr(frappe.local, "path", "") in STOREFRONT_ROUTES:
@@ -12,7 +17,10 @@ def enable_portal_sidebar(context):
 
 
 def close_orders_route(context):
-	"""Hide Orders from the portal sidebar and block its URL for everyone."""
+	"""Hide Orders from the portal sidebar and block its URL for customers."""
+	if is_frc_admin():
+		return
+
 	items = context.get("sidebar_items")
 	if items:
 		context["sidebar_items"] = [
@@ -53,9 +61,10 @@ class InvoiceAccessRedirect(RedirectPage):
 		return self.blocked and not self.has_access()
 
 	def has_access(self):
-		user = frappe.session.user
-		if user == "Administrator" or "System Manager" in frappe.get_roles():
+		if is_frc_admin():
 			return True
+
+		user = frappe.session.user
 		if user == "Guest":
 			return False
 

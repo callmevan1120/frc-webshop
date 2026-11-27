@@ -7,6 +7,10 @@ app_license = "mit"
 
 required_apps = ["erpnext"]
 
+override_doctype_class = {
+	"Sales Order": "frc_webshop.overrides.sales_order.FRCSalesOrder",
+}
+
 web_include_css = "/assets/frc_webshop/css/frc-webshop.css?v=44"
 web_include_js = "/assets/frc_webshop/js/frc-webshop.js?v=44"
 

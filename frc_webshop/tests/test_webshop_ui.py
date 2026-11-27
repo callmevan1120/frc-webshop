@@ -889,15 +889,34 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("meta.grand_total", js)
         self.assertIn("row.amount", js)
 
-    def test_orders_are_hidden_from_sidebar_and_redirected(self):
+    def test_admin_can_read_sales_order_portal_detail(self):
+        sales_order = frappe.get_doc("Sales Order", "SORD-JURI-261123001")
+        self.assertTrue(
+            frappe.has_website_permission(sales_order, user="Administrator")
+        )
+
+    def test_customer_sales_order_website_permission_stays_scoped(self):
+        original_user = frappe.session.user
+        try:
+            frappe.set_user("frc260158@erp.local")
+            own = frappe.get_doc("Sales Order", "SORD-JURI-261121003")
+            foreign = frappe.get_doc("Sales Order", "SORD-JURI-261123001")
+            self.assertTrue(frappe.has_website_permission(own))
+            self.assertFalse(frappe.has_website_permission(foreign))
+        finally:
+            frappe.set_user(original_user)
+
+    def test_orders_are_hidden_from_customers_and_redirected(self):
         self.assertIn(
             "frc_webshop.webshop_shell.close_orders_route",
             frappe.get_hooks("update_website_context"),
         )
         close_route = frappe.get_attr("frc_webshop.webshop_shell.close_orders_route")
+        original_user = frappe.session.user
         original_path = getattr(frappe.local, "path", None)
         original_redirect = getattr(frappe.flags, "redirect_location", None)
         try:
+            frappe.set_user("Guest")
             context = {
                 "sidebar_items": [
                     {"route": "/orders", "title": "Orders"},
@@ -921,7 +940,15 @@ class TestWebshopUI(IntegrationTestCase):
             frappe.local.path = "quotations"
             frappe.flags.redirect_location = None
             self.assertIsNone(close_route({}))
+
+            frappe.set_user("Administrator")
+            for route in ("orders", "orders/SAL-ORD-00001"):
+                frappe.local.path = route
+                frappe.flags.redirect_location = None
+                self.assertIsNone(close_route({}))
+                self.assertIsNone(frappe.flags.redirect_location)
         finally:
+            frappe.set_user(original_user)
             frappe.local.path = original_path
             frappe.flags.redirect_location = original_redirect
 
