@@ -143,6 +143,9 @@ class TestWebshopUI(IntegrationTestCase):
         )
 
         publish_storefront_items()
+        self.assertEqual(
+            frappe.db.get_single_value("Webshop Settings", "products_per_page"), 48
+        )
         items = get_storefront_items()
         self.assertEqual(len(items), 41)
         for item in items:

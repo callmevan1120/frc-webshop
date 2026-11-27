@@ -15,6 +15,7 @@ PRODUCTION_WAREHOUSES = (
 	"Gudang R&D - JURI",
 )
 SKIP_NAMES = {"Botol (250 ml)"}
+PAGE_SIZE = 48
 
 
 def _warehouses_by_item(item_codes: list[str]) -> dict[str, set[str]]:
@@ -137,7 +138,16 @@ def unpublish_pos_items(exclude_codes: set[str] | None = None) -> int:
 	return unpublished
 
 
+def ensure_page_size() -> None:
+	settings = frappe.get_doc("Webshop Settings")
+	if (settings.products_per_page or 0) < PAGE_SIZE:
+		settings.products_per_page = PAGE_SIZE
+		settings.flags.ignore_permissions = True
+		settings.save()
+
+
 def publish_storefront_items() -> int:
+	ensure_page_size()
 	items = get_storefront_items()
 	unpublish_pos_items({item["name"] for item in items})
 	published = 0

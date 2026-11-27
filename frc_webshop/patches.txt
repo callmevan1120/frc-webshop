@@ -5,3 +5,4 @@
 # Patches added in this section will be executed after doctypes are migrated
 frc_webshop.patches.publish_factory_items
 frc_webshop.patches.publish_outlet_dry_goods
+frc_webshop.patches.storefront_page_size

@@ -74,5 +74,5 @@ Pastikan 70 test lolos sebelum deploy. Sebagian test memakai data FRC lokal
 
 ## Status
 
-Kode di repo ini disalin dari workspace lokal pada 2026-11-27 (v43). Belum ada
+Kode di repo ini disalin dari workspace lokal pada 2026-11-27 (v44). Belum ada
 perubahan struktur Data, migrate, atau endpoint baru.
