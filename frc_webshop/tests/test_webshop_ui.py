@@ -79,6 +79,51 @@ class TestWebshopUI(IntegrationTestCase):
                 name="SORD-JURI-261123001",
             )
 
+    def test_invoice_items_include_qty_rate_and_uom_for_portal_user(self):
+        frappe.set_user("frc260158@erp.local")
+        try:
+            result = frappe.call(
+                ENDPOINT,
+                doctype="Sales Invoice",
+                name="SINV-JURI-261124001",
+            )
+        finally:
+            frappe.set_user("Administrator")
+
+        self.assertEqual(result["meta"]["customer_name"], "Harapan indah (FRC)")
+        self.assertTrue(result["meta"]["posting_date"])
+        self.assertTrue(result["meta"]["due_date"])
+        self.assertIn("outstanding_amount", result["meta"])
+        self.assertTrue(result["items"])
+        for row in result["items"]:
+            self.assertTrue(row["uom"], row["item_code"])
+            self.assertGreater(row["qty"], 0, row["item_code"])
+            self.assertIn("rate", row)
+            self.assertIn("amount", row)
+
+    def test_invoice_endpoint_allows_admin(self):
+        from frc_webshop.webshop_shell import allow_admin_invoice_detail
+
+        allow_admin_invoice_detail()
+        result = frappe.call(
+            ENDPOINT,
+            doctype="Sales Invoice",
+            name="SINV-JURI-261124001",
+        )
+        self.assertTrue(result["items"])
+
+    def test_invoice_endpoint_keeps_customer_scope(self):
+        frappe.set_user("frc260158@erp.local")
+        try:
+            with self.assertRaises(frappe.PermissionError):
+                frappe.call(
+                    ENDPOINT,
+                    doctype="Sales Invoice",
+                    name="SINV-JURI-261105007",
+                )
+        finally:
+            frappe.set_user("Administrator")
+
     def test_marketplace_shell_assets_present(self):
         css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")
         js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
@@ -1081,6 +1126,24 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertLess(form.index("buildCustomerSection("), form.index("buildProductSection("))
         self.assertLess(form.index("buildProductSection("), form.index("buildPaymentSection("))
         self.assertLess(form.index("buildPaymentSection("), form.index("buildTimestampSection("))
+
+    def test_invoice_detail_uses_marketplace_order_detail(self):
+        js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")
+        with open(js_path, encoding="utf-8") as js_file:
+            js = js_file.read()
+
+        self.assertIn("function initInvoiceDetail(", js)
+        self.assertIn("initInvoiceDetail();", js)
+        init = js.split("function initInvoiceDetail(", 1)[1].split("\n  }", 1)[0]
+        self.assertIn('doctype: "Sales Invoice"', init)
+        self.assertIn('dateField: "posting_date"', init)
+        self.assertIn('dueDateField: "due_date"', init)
+        self.assertIn('backHref: "/invoices"', init)
+        self.assertIn('backText: "← Kembali ke Daftar Invoice"', init)
+        self.assertIn("nextStepForInvoice", init)
+        self.assertIn("buildDetailForm(", init)
+        self.assertIn("row.qty", js)
+        self.assertIn("row.uom", js)
 
     def test_quotation_detail_uses_erpnext_form_layout(self):
         js_path = frappe.get_app_path("frc_webshop", "public", "js", "frc-webshop.js")

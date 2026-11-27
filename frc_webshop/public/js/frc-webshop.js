@@ -351,7 +351,8 @@
     return section;
   }
 
-  function buildOrderHeader(form, meta, name) {
+  function buildOrderHeader(form, meta, name, options) {
+    const opts = options || {};
     const section = appendSection(form, "frc-detail-header");
     const number = document.createElement("div");
     number.className = "frc-detail-no";
@@ -359,22 +360,29 @@
     section.appendChild(number);
     const date = document.createElement("div");
     date.className = "frc-detail-header-date";
-    date.textContent = "Tanggal: " + ((meta && meta.transaction_date) || "—");
+    let dateValue = meta && meta.transaction_date;
+    if (opts.dateField) dateValue = meta && meta[opts.dateField];
+    const dateParts = ["Tanggal: " + (dateValue || "—")];
+    if (opts.dueDateField && meta && meta[opts.dueDateField]) {
+      dateParts.push("Jatuh tempo: " + meta[opts.dueDateField]);
+    }
+    date.textContent = dateParts.join(" · ");
     section.appendChild(date);
     const back = document.createElement("a");
     back.className = "frc-detail-back";
-    back.href = "/quotations";
-    back.textContent = "← Kembali ke Daftar Pesanan";
+    back.href = opts.backHref || "/quotations";
+    back.textContent = opts.backText || "← Kembali ke Daftar Pesanan";
     section.appendChild(back);
   }
 
-  function buildCustomerSection(form, meta) {
+  function buildCustomerSection(form, meta, options) {
     const section = appendSection(form, "frc-detail-customer", "Dipesan oleh");
     const field = detailField("Customer", meta && meta.customer_name);
     section.appendChild(field);
     const next = document.createElement("div");
     next.className = "frc-next-step";
-    next.textContent = "Langkah berikutnya: " + nextStepFor(meta);
+    const nextStep = options && options.nextStep ? options.nextStep(meta) : nextStepFor(meta);
+    next.textContent = "Langkah berikutnya: " + nextStep;
     section.appendChild(next);
   }
 
@@ -420,12 +428,13 @@
     return row;
   }
 
-  function buildPaymentSection(form, rows, meta) {
+  function buildPaymentSection(form, rows, meta, options) {
     const section = appendSection(form, "frc-detail-payment", "Ringkasan Pembayaran");
     const count = rows.reduce(function (sum, row) { return sum + (Number(row.qty) || 0); }, 0);
+    const totalLabel = options && options.totalLabel ? options.totalLabel : "Total pesanan";
     section.appendChild(paymentRow("Total produk", count || "—", false));
     section.appendChild(paymentRow("Subtotal", money(meta && meta.grand_total), false));
-    section.appendChild(paymentRow("Total pesanan", money(meta && meta.grand_total), true));
+    section.appendChild(paymentRow(totalLabel, money(meta && meta.grand_total), true));
   }
 
   function clockTime(value) {
@@ -442,16 +451,16 @@
     });
   }
 
-  function buildDetailForm(rows, meta, name) {
+  function buildDetailForm(rows, meta, name, options) {
     const container = document.querySelector(".order-container");
     if (!container) return;
     container.replaceChildren();
     const form = document.createElement("div");
     form.className = "frc-detail-form frc-order-detail";
-    buildOrderHeader(form, meta, name);
-    buildCustomerSection(form, meta);
+    buildOrderHeader(form, meta, name, options);
+    buildCustomerSection(form, meta, options);
     buildProductSection(form, rows);
-    buildPaymentSection(form, rows, meta);
+    buildPaymentSection(form, rows, meta, options);
     buildTimestampSection(form, meta);
     container.appendChild(form);
   }
@@ -901,6 +910,13 @@
     return "Menunggu konfirmasi FRC";
   }
 
+  function nextStepForInvoice(meta) {
+    if (!meta) return "Menunggu konfirmasi FRC";
+    if (meta.docstatus === 2) return "Invoice dibatalkan";
+    if (Number(meta.outstanding_amount) > 0) return "Menunggu pembayaran";
+    return "Invoice lunas";
+  }
+
   function placeDetailStatus() {
     const header = document.querySelector(".page-header-wrapper");
     const pill = document.querySelector(".indicator-container .indicator-pill");
@@ -924,6 +940,30 @@
     });
   }
 
+  function initInvoiceDetail() {
+    const match = window.location.pathname.match(/^\/invoices\/([^/]+)\/?$/);
+    if (!match) return;
+    placeDetailStatus();
+    const container = document.querySelector(".order-container");
+    if (container) container.classList.add(SHOP_CLASS);
+    const name = decodeURIComponent(match[1]);
+    frappe.call({
+      method: "frc_webshop.webshop_ui.get_webshop_item_uoms",
+      args: { doctype: "Sales Invoice", name: name },
+      callback: function (r) {
+        if (!r.message || !Array.isArray(r.message.items)) return;
+        buildDetailForm(r.message.items, r.message.meta, name, {
+          dateField: "posting_date",
+          dueDateField: "due_date",
+          backHref: "/invoices",
+          backText: "← Kembali ke Daftar Invoice",
+          nextStep: nextStepForInvoice,
+          totalLabel: "Total tagihan",
+        });
+      },
+    });
+  }
+
   setDefaultProductView();
 
   frappe.ready(function () {
@@ -935,7 +975,10 @@
     addBottomNav();
 
     if ($(".cart-container").length) initCart();
-    else if ($(".order-container").length) initQuotation();
+    else if ($(".order-container").length) {
+      initQuotation();
+      initInvoiceDetail();
+    }
     initListFilters();
     initQuoteList();
     initInvoiceList();
