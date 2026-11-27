@@ -889,34 +889,43 @@ class TestWebshopUI(IntegrationTestCase):
         self.assertIn("meta.grand_total", js)
         self.assertIn("row.amount", js)
 
-    def test_admin_can_read_sales_order_portal_detail(self):
-        sales_order = frappe.get_doc("Sales Order", "SORD-JURI-261123001")
+    def test_admin_can_read_sales_invoice_portal_detail(self):
+        from frc_webshop.webshop_shell import allow_admin_invoice_detail
+
+        allow_admin_invoice_detail()
+        invoice = frappe.get_doc("Sales Invoice", "SINV-JURI-261124001")
         self.assertTrue(
-            frappe.has_website_permission(sales_order, user="Administrator")
+            frappe.has_website_permission(invoice, user="Administrator")
         )
 
-    def test_customer_sales_order_website_permission_stays_scoped(self):
+    def test_customer_sales_invoice_website_permission_stays_scoped(self):
+        from frc_webshop.webshop_shell import allow_admin_invoice_detail
+
+        allow_admin_invoice_detail()
         original_user = frappe.session.user
         try:
             frappe.set_user("frc260158@erp.local")
-            own = frappe.get_doc("Sales Order", "SORD-JURI-261121003")
-            foreign = frappe.get_doc("Sales Order", "SORD-JURI-261123001")
+            own = frappe.get_doc("Sales Invoice", "SINV-JURI-261124001")
+            foreign = frappe.get_doc("Sales Invoice", "SINV-JURI-261105007")
             self.assertTrue(frappe.has_website_permission(own))
             self.assertFalse(frappe.has_website_permission(foreign))
         finally:
             frappe.set_user(original_user)
 
-    def test_orders_are_hidden_from_customers_and_redirected(self):
+    def test_orders_are_hidden_from_sidebar_and_redirected(self):
         self.assertIn(
             "frc_webshop.webshop_shell.close_orders_route",
             frappe.get_hooks("update_website_context"),
         )
+        self.assertIn(
+            "frc_webshop.webshop_shell.OrdersAccessRedirect",
+            frappe.get_hooks("page_renderer"),
+        )
         close_route = frappe.get_attr("frc_webshop.webshop_shell.close_orders_route")
-        original_user = frappe.session.user
+        renderer = frappe.get_attr("frc_webshop.webshop_shell.OrdersAccessRedirect")
         original_path = getattr(frappe.local, "path", None)
         original_redirect = getattr(frappe.flags, "redirect_location", None)
         try:
-            frappe.set_user("Guest")
             context = {
                 "sidebar_items": [
                     {"route": "/orders", "title": "Orders"},
@@ -933,28 +942,27 @@ class TestWebshopUI(IntegrationTestCase):
             for route in ("orders", "orders/SAL-ORD-00001"):
                 frappe.local.path = route
                 frappe.flags.redirect_location = None
-                with self.assertRaises(frappe.Redirect):
-                    close_route({})
+                self.assertTrue(renderer(route).can_render())
+                response = renderer(route).render()
+                self.assertEqual(response.status_code, 302)
                 self.assertEqual(frappe.flags.redirect_location, "/all-products")
+                self.assertTrue(response.headers["Location"].endswith("/all-products"))
 
             frappe.local.path = "quotations"
             frappe.flags.redirect_location = None
             self.assertIsNone(close_route({}))
-
-            frappe.set_user("Administrator")
-            for route in ("orders", "orders/SAL-ORD-00001"):
-                frappe.local.path = route
-                frappe.flags.redirect_location = None
-                self.assertIsNone(close_route({}))
-                self.assertIsNone(frappe.flags.redirect_location)
+            self.assertFalse(renderer("Quotation").can_render())
         finally:
-            frappe.set_user(original_user)
             frappe.local.path = original_path
             frappe.flags.redirect_location = original_redirect
 
     def test_invoices_require_frc_customer(self):
         hook = "frc_webshop.webshop_shell.InvoiceAccessRedirect"
         self.assertIn(hook, frappe.get_hooks("page_renderer"))
+        self.assertIn(
+            "frc_webshop.webshop_shell.allow_admin_invoice_detail",
+            frappe.get_hooks("before_request"),
+        )
         renderer = frappe.get_attr(hook)
 
         original_user = frappe.session.user

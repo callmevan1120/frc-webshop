@@ -14,9 +14,8 @@ Frappe/ERPNext 15–16 (lihat `pyproject.toml`).
 |------|--------|
 | `pyproject.toml` | Metadata app yang dibaca bench/Frappe Cloud |
 | `frc_webshop/hooks.py` | Hook asset, portal sidebar, dan invoice gate |
-| `frc_webshop/webshop_shell.py` | Portal sidebar hook, `/orders` close, `/invoices` redirect gate |
+| `frc_webshop/webshop_shell.py` | Portal sidebar, redirect `/orders`, gate `/invoices`, izin detail invoice untuk admin |
 | `frc_webshop/webshop_ui.py` | Endpoint aman `get_webshop_item_uoms` untuk detail Quotation |
-| `frc_webshop/overrides/sales_order.py` | Izinkan admin membuka detail Sales Order portal |
 | `frc_webshop/public/css/frc-webshop.css` | Styling shell, bottom nav, detail Quotation, List View mobile, chip/popover filter tanggal |
 | `frc_webshop/public/js/frc-webshop.js` | Shell, bottom nav, builder detail, price/UOM decoration, filter tanggal server-side |
 | `frc_webshop/setup/frc_webshop_local.py` | Setup/teardown lokal untuk 48 Customer FRC (idempoten) |
@@ -68,9 +67,8 @@ Pastikan 72 test lolos sebelum deploy. Sebagian test memakai data FRC lokal
 - Warna oranye `#ee4d2d` hanya untuk header/summary/banner/cart badge; tombol
   utama hitam.
 - Harga, tanggal, dan status di detail **hanya** dari data Quotation yang ada.
-- Admin/System Manager dibolehkan mengakses `/invoices` dan detail `/orders/<name>`;
-  customer tetap lewat website permission dan route `/orders` tetap ditutup untuk
-  non-admin.
+- Admin/System Manager dibolehkan mengakses `/invoices` dan detail `/invoices/<name>`;
+  customer tetap lewat website permission. Route `/orders` ditutup untuk semua.
 - Filter tanggal daftar Quotation memakai `transaction_date`; daftar Invoice memakai
   `posting_date`. Filter dijalankan server-side lewat query param portal list.
 

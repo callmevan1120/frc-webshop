@@ -7,9 +7,7 @@ app_license = "mit"
 
 required_apps = ["erpnext"]
 
-override_doctype_class = {
-	"Sales Order": "frc_webshop.overrides.sales_order.FRCSalesOrder",
-}
+before_request = ["frc_webshop.webshop_shell.allow_admin_invoice_detail"]
 
 web_include_css = "/assets/frc_webshop/css/frc-webshop.css?v=44"
 web_include_js = "/assets/frc_webshop/js/frc-webshop.js?v=44"
@@ -20,6 +18,7 @@ update_website_context = [
 ]
 
 page_renderer = [
+	"frc_webshop.webshop_shell.OrdersAccessRedirect",
 	"frc_webshop.webshop_shell.StorefrontLoginRedirect",
 	"frc_webshop.webshop_shell.InvoiceAccessRedirect",
 ]

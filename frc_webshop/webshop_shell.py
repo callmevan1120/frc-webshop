@@ -10,6 +10,27 @@ def is_frc_admin(user=None):
 	return user == "Administrator" or "System Manager" in frappe.get_roles(user)
 
 
+def allow_admin_invoice_detail():
+	"""Webshop's order page only checks customer links; admins use role permission."""
+	from erpnext.controllers import website_list_for_contact
+
+	current = website_list_for_contact.has_website_permission
+	if getattr(current, "_frc_admin_invoice", False):
+		return
+
+	def has_website_permission(doc, ptype, user, verbose=False):
+		if (
+			doc is not None
+			and getattr(doc, "doctype", None) == "Sales Invoice"
+			and is_frc_admin(user)
+		):
+			return doc.has_permission(ptype, user=user)
+		return current(doc, ptype, user, verbose)
+
+	has_website_permission._frc_admin_invoice = True
+	website_list_for_contact.has_website_permission = has_website_permission
+
+
 def enable_portal_sidebar(context):
 	# Frappe calls this for every website page; gate on the exact storefront route.
 	if getattr(frappe.local, "path", "") in STOREFRONT_ROUTES:
@@ -17,20 +38,12 @@ def enable_portal_sidebar(context):
 
 
 def close_orders_route(context):
-	"""Hide Orders from the portal sidebar and block its URL for customers."""
-	if is_frc_admin():
-		return
-
+	"""Hide Orders from the portal sidebar; the route renderer blocks its URL."""
 	items = context.get("sidebar_items")
 	if items:
 		context["sidebar_items"] = [
 			item for item in items if item.get("route", "").rstrip("/") != "/orders"
 		]
-
-	path = (getattr(frappe.local, "path", "") or "").strip("/")
-	if path == "orders" or path.startswith("orders/"):
-		frappe.flags.redirect_location = REDIRECT_HOME
-		raise frappe.Redirect
 
 
 class StorefrontLoginRedirect(RedirectPage):
@@ -46,6 +59,22 @@ class StorefrontLoginRedirect(RedirectPage):
 
 	def render(self):
 		frappe.flags.redirect_location = "/login?redirect-to=/all-products"
+		return super().render()
+
+
+class OrdersAccessRedirect(RedirectPage):
+	"""Hide the Orders route for everyone."""
+
+	def __init__(self, path=None, http_status_code=None):
+		path = (getattr(frappe.local, "path", "") or path or "").strip("/")
+		super().__init__(path, 302)
+		self.blocked = path == "orders" or path.startswith("orders/")
+
+	def can_render(self):
+		return self.blocked
+
+	def render(self):
+		frappe.flags.redirect_location = REDIRECT_HOME
 		return super().render()
 
 
