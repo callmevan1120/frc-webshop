@@ -136,22 +136,38 @@ class TestWebshopUI(IntegrationTestCase):
             "#products-grid-area .item-card, #products-list-area .list-row", js
         )
 
-    def test_factory_finished_goods_are_published(self):
-        from frc_webshop.setup.publish_factory_items import publish_factory_items
-
-        publish_factory_items()
-        item_codes = frappe.get_all(
-            "Item",
-            filters={"item_group": "Produk Jadi Pabrik", "disabled": 0},
-            pluck="name",
+    def test_storefront_items_are_published(self):
+        from frc_webshop.setup.publish_storefront_items import (
+            get_storefront_items,
+            publish_storefront_items,
         )
-        self.assertTrue(item_codes)
-        for item_code in item_codes:
+
+        publish_storefront_items()
+        items = get_storefront_items()
+        self.assertEqual(len(items), 41)
+        for item in items:
+            website_item = frappe.db.get_value(
+                "Website Item",
+                {"item_code": item["name"]},
+                ["name", "published", "website_image"],
+            )
+            self.assertTrue(website_item, item["name"])
+            self.assertEqual(website_item[1], 1, item["name"])
+            self.assertEqual(
+                website_item[2],
+                f"/assets/frc_webshop/images/products/{item['name']}.png",
+                item["name"],
+            )
+
+        pos_codes = frappe.get_all(
+            "Item", filters={"item_group": "Produk Jadi Outlet"}, pluck="name"
+        )
+        for item_code in pos_codes:
             website_item = frappe.db.get_value(
                 "Website Item", {"item_code": item_code}, ["name", "published"]
             )
-            self.assertTrue(website_item, item_code)
-            self.assertEqual(website_item[1], 1, item_code)
+            if website_item:
+                self.assertEqual(website_item[1], 0, item_code)
 
     def test_quotation_page_has_marketplace_cards(self):
         css_path = frappe.get_app_path("frc_webshop", "public", "css", "frc-webshop.css")

@@ -1,5 +1,5 @@
-from frc_webshop.setup.publish_factory_items import publish_factory_items
+from frc_webshop.setup.publish_storefront_items import publish_storefront_items
 
 
 def execute():
-	publish_factory_items()
+	publish_storefront_items()
